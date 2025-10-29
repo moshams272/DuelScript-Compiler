@@ -1,0 +1,52 @@
+#SetField <DuelArena>
+using Kaiba Joey;
+
+MillenniumEye: This is a test of the Millennium Eye comment.
+
+ToonWorld MonsterCard {
+    RedEyesBlackDragon name;
+    DarkMagician attack;
+};
+
+LordOfD Duelist {
+  public:
+    RedEyesBlackDragon name;
+    DarkMagician lifePoints = 4000;
+
+    Ritual TakeDamage(DarkMagician damage) {
+        lifePoints -= damage;
+        Summon << name << " takes " << damage << " points of damage!\n";
+    }
+};
+
+ShadowRealm{
+    This is a test of the ShadowRealm multi-line comment.
+    We can write anything we want here, and the scanner
+    will send it to the Shadow Realm (i.e., ignore it).
+}
+
+Ritual Yugi() {
+    Duelist player1;
+    player1.name = "Yami Yugi";
+
+    Duelist player2;
+    player2.name = "Seto Kaiba";
+
+    MonsterCard blueEyes;
+    blueEyes.name = "Blue-Eyes White Dragon";
+    blueEyes.attack = 3000;
+
+    TimeWizard aCoinToss = true;
+
+    JudgmentOfAnubis (aCoinToss) {
+         Summon << player1.name << " attacks " << player2.name << " with " << blueEyes.name << "!\n";
+         player2.TakeDamage(blueEyes.attack);
+    }
+    SolemnJudgment {
+        Summon << "A trap card negates the attack!\n";
+    }
+
+    Summon << "Kaiba's remaining Life Points: " << player2.lifePoints << "\n";
+
+    Tribute 0;
+}
