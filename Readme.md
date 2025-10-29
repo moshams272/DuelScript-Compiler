@@ -1,10 +1,10 @@
-# Language Concept: DuelScript
+# 🃏 Language Concept: DuelScript
 
 > "It's Time to Code\!"
 
 DuelScript reimagines the structure and syntax of C++ through the lens of the Yu-Gi-Oh\! trading card game. Every keyword and concept is replaced with iconic terms from the series, transforming programming from a task into a strategic duel.
 
-## Core Keyword Summoning
+## ✨ Core Keyword Summoning
 
 | C++ Concept | DuelScript Keyword | Example |
 | :--- | :--- | :--- |
@@ -27,7 +27,7 @@ DuelScript reimagines the structure and syntax of C++ through the lens of the Yu
 
 -----
 
-## Monster Data Types
+## 🐲 Monster Data Types
 
 | Type | Meaning | Example |
 | :--- | :--- | :--- |
@@ -38,9 +38,9 @@ DuelScript reimagines the structure and syntax of C++ through the lens of the Yu
 
 -----
 
-## Syntax Examples
+## 💻 Syntax Examples
 
-### Struct Example (Toon World)
+### 📖 Struct Example (Toon World)
 
 ```duelscript
 MillenniumEye: Create a structure to hold a monster's stats.
@@ -59,7 +59,7 @@ Ritual Yugi() {
 }
 ```
 
-### Class Example (Lord of D.)
+### 👑 Class Example (Lord of D.)
 
 ```duelscript
 MillenniumEye: Define a class to manage a Duelist's state.
@@ -79,8 +79,7 @@ Ritual Yugi() {
   player1.Announce();
 }
 ```
-
-### Conditional (Making a Judgment)
+### ⚖️ Conditional (Making a Judgment)
 
 ```duelscript
 Ritual Yugi() {
@@ -94,7 +93,7 @@ Ritual Yugi() {
 }
 ```
 
-### Example Full Program (A Simple Duel)
+### ⚔️ Example Full Program (A Simple Duel)
 
 ```duelscript
 #SetField <DuelArena>
