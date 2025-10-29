@@ -1,3 +1,4 @@
+![Yugi](Yugi.jpg)
 # 🃏 Language Concept: DuelScript
 
 > "It's Time to Code\!"
