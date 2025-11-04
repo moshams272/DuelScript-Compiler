@@ -5,43 +5,37 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <cctype> // For isdigit, isalpha
+#include <cctype>
 
-// Enum for all possible token types in DuelScript
 enum class TokenType {
-    // Single-character tokens.
+    // ... (نفس الـ Tokens) ...
     LEFT_PAREN, RIGHT_PAREN, LEFT_BRACE, RIGHT_BRACE,
     COMMA, DOT, MINUS, PLUS, SEMICOLON, SLASH, STAR,
 
-    // One or two character tokens.
     BANG, BANG_EQUAL,
     EQUAL, EQUAL_EQUAL,
     GREATER, GREATER_EQUAL,
     LESS, LESS_EQUAL,
-    
-    // DuelScript specific operators
-    SUMMON_OP, // <<
-    DRAW_OP,   // >>
 
-    // Literals.
+    SUMMON_OP,
+    DRAW_OP,
+
     IDENTIFIER, STRING, NUMBER,
 
-    // Keywords.
     KEYWORD_YUGI, KEYWORD_LORDOFD, KEYWORD_TOONWORLD, KEYWORD_RITUAL,
     KEYWORD_SETFIELD, KEYWORD_KAIBA, KEYWORD_JOEY, KEYWORD_SUMMON,
     KEYWORD_DRAW, KEYWORD_JUDGMENTOFANUBIS, KEYWORD_SOLEMNJUDGMENT,
     KEYWORD_FAIRYBOX, KEYWORD_SWORDSOFREVEALINGLIGHT, KEYWORD_TRIBUTE,
-    
-    // Data Type Keywords
+
     KEYWORD_DARKMAGICIAN, KEYWORD_BLUEEYESWHITEDRAGON,
     KEYWORD_REDEYESBLACKDRAGON, KEYWORD_TIMEWIZARD,
 
-    // End of file.
+    KEYWORD_TRUE, KEYWORD_FALSE,
+
     TOKEN_EOF
 };
 
-// Helper function to convert TokenType to a string for printing
-std::string tokenTypeToString(TokenType type) {
+inline std::string tokenTypeToString(TokenType type) {
     switch (type) {
         case TokenType::LEFT_PAREN: return "LEFT_PAREN";
         case TokenType::RIGHT_PAREN: return "RIGHT_PAREN";
@@ -85,22 +79,25 @@ std::string tokenTypeToString(TokenType type) {
         case TokenType::KEYWORD_BLUEEYESWHITEDRAGON: return "KEYWORD_BLUEEYESWHITEDRAGON";
         case TokenType::KEYWORD_REDEYESBLACKDRAGON: return "KEYWORD_REDEYESBLACKDRAGON";
         case TokenType::KEYWORD_TIMEWIZARD: return "KEYWORD_TIMEWIZARD";
+        case TokenType::KEYWORD_TRUE: return "KEYWORD_TRUE";
+        case TokenType::KEYWORD_FALSE: return "KEYWORD_FALSE";
         case TokenType::TOKEN_EOF: return "EOF";
         default: return "UNKNOWN";
     }
 }
 
-// Represents a single token
 struct Token {
     TokenType type;
-    std::string lexeme; // The actual text of the token
+    std::string lexeme;
     int line;
 
+    Token() : type(TokenType::TOKEN_EOF), lexeme(""), line(0) {}
+
     Token(TokenType type, std::string lexeme, int line)
-        : type(type), lexeme(lexeme), line(line) {}
+            : type(type), lexeme(lexeme), line(line) {}
 
     std::string toString() const {
-        return "Line " + std::to_string(line) + ": " + 
+        return "Line " + std::to_string(line) + ": " +
                tokenTypeToString(type) + " [" + lexeme + "]";
     }
 };
@@ -108,13 +105,12 @@ struct Token {
 class Scanner {
 public:
     Scanner(const std::string& source)
-        : source(source), start(0), current(0), line(1) {
-        // Populate the keywords map
+            : source(source), start(0), current(0), line(1) {
         keywords["Yugi"] = TokenType::KEYWORD_YUGI;
         keywords["LordOfD"] = TokenType::KEYWORD_LORDOFD;
         keywords["ToonWorld"] = TokenType::KEYWORD_TOONWORLD;
         keywords["Ritual"] = TokenType::KEYWORD_RITUAL;
-        // #SetField is handled specially
+
         keywords["Kaiba"] = TokenType::KEYWORD_KAIBA;
         keywords["Joey"] = TokenType::KEYWORD_JOEY;
         keywords["Summon"] = TokenType::KEYWORD_SUMMON;
@@ -124,18 +120,19 @@ public:
         keywords["FairyBox"] = TokenType::KEYWORD_FAIRYBOX;
         keywords["SwordsOfRevealingLight"] = TokenType::KEYWORD_SWORDSOFREVEALINGLIGHT;
         keywords["Tribute"] = TokenType::KEYWORD_TRIBUTE;
-        
-        // Data types
+
         keywords["DarkMagician"] = TokenType::KEYWORD_DARKMAGICIAN;
         keywords["BlueEyesWhiteDragon"] = TokenType::KEYWORD_BLUEEYESWHITEDRAGON;
         keywords["RedEyesBlackDragon"] = TokenType::KEYWORD_REDEYESBLACKDRAGON;
         keywords["TimeWizard"] = TokenType::KEYWORD_TIMEWIZARD;
+
+        keywords["true"] = TokenType::KEYWORD_TRUE;
+        keywords["false"] = TokenType::KEYWORD_FALSE;
     }
 
-    // Main function to scan all tokens
+
     std::vector<Token> scanTokens() {
         while (!isAtEnd()) {
-            // We are at the beginning of the next lexeme.
             start = current;
             scanToken();
         }
@@ -156,31 +153,32 @@ private:
         return current >= source.length();
     }
 
-    // Consumes the current character and returns it
     char advance() {
         return source[current++];
     }
 
-    // Adds a token to the list
+    // --- (الإصلاح) ---
+    // إضافة دالة previous() التي كانت مفقودة
+    Token previous() {
+        return tokens.back();
+    }
+
     void addToken(TokenType type) {
         std::string text = source.substr(start, current - start);
         tokens.push_back(Token(type, text, line));
     }
 
-    // Looks at the current character without consuming it
     char peek() {
         if (isAtEnd()) return '\0';
         return source[current];
     }
 
-    // Looks at the next character
     char peekNext() {
         if (current + 1 >= source.length()) return '\0';
         return source[current + 1];
     }
 
-    // Checks if a string matches the source at the current position
-    // Used for our special comments
+
     bool peekString(const std::string& str) {
         if (current + str.length() > source.length()) {
             return false;
@@ -188,7 +186,6 @@ private:
         return source.substr(current, str.length()) == str;
     }
 
-    // Consumes the current character if it matches the expected one
     bool match(char expected) {
         if (isAtEnd()) return false;
         if (source[current] != expected) return false;
@@ -196,9 +193,15 @@ private:
         return true;
     }
 
-    // Handles string literals: "..."
     void stringLiteral() {
-        while (peek() != '"' && !isAtEnd()) {
+        // --- (الإصلاح) ---
+        // 'advance()' هي التي استهلكت الـ '"'،
+        // ونحتاج الدالة 'previous()' الحقيقية (التي تعيد آخر توكن مضاف)
+        // ولكن الـ 'advance()' تُرجع الحرف، لذلك 'previous()' (كدالة توكن) ليست صحيحة هنا
+        // سنستخدم 'source[current-1]' (الحرف السابق)
+        char quoteType = source[current-1]; // (")
+
+        while (peek() != quoteType && !isAtEnd()) {
             if (peek() == '\n') line++;
             advance();
         }
@@ -208,24 +211,25 @@ private:
             return;
         }
 
-        advance(); // Consume the closing "
-        std::string value = source.substr(start + 1, current - start - 2);
-        addToken(TokenType::STRING);
+        advance();
+
+        // إزالة علامات التنصيص
+        std::string value = source.substr(start + 1, (current - start) - 2);
+        // (استدعاء 'addToken' مع 'value' بدلاً من 'text')
+        tokens.push_back(Token(TokenType::STRING, value, line));
     }
 
-    // Handles number literals
+
     void numberLiteral() {
         while (isdigit(peek())) advance();
 
-        // Look for a fractional part
         if (peek() == '.' && isdigit(peekNext())) {
-            advance(); // Consume the "."
+            advance();
             while (isdigit(peek())) advance();
         }
         addToken(TokenType::NUMBER);
     }
 
-    // Handles identifiers and keywords
     void identifier() {
         while (isalnum(peek()) || peek() == '_') advance();
 
@@ -239,24 +243,20 @@ private:
         addToken(type);
     }
 
-    // Main token-scanning logic
-    void scanToken() {
-        // --- Handle Comments First ---
-        // These are multi-character tokens, so we peek for them.
 
-        // Check for MillenniumEye:
+    void scanToken() {
+
         if (peekString("MillenniumEye:")) {
-            current += 14; // Consume "MillenniumEye:"
-            // A comment goes until the end of the line.
+            current += 14;
             while (peek() != '\n' && !isAtEnd()) {
                 advance();
             }
-            return; // Don't add a token, just skip
+            return;
         }
 
-        // Check for ShadowRealm{
+
         if (peekString("ShadowRealm{")) {
-            current += 12; // Consume "ShadowRealm{"
+            current += 12;
             while (!peekString("}") && !isAtEnd()) {
                 if (peek() == '\n') line++;
                 advance();
@@ -266,20 +266,18 @@ private:
                 std::cerr << "Line " << line << ": Error! Unterminated ShadowRealm block." << std::endl;
                 return;
             }
-            
-            advance(); // Consume the closing "}"
-            return; // Skip the comment block
+
+            advance(); // ابلع '}'
+            return;
         }
-        
-        // Check for #SetField
+
         if (peekString("#SetField")) {
-            current += 9; // Consume "#SetField"
+            current += 9;
             addToken(TokenType::KEYWORD_SETFIELD);
             return;
         }
 
 
-        // --- Handle Single/Double Characters ---
         char c = advance();
         switch (c) {
             case '(': addToken(TokenType::LEFT_PAREN); break;
@@ -292,32 +290,29 @@ private:
             case '+': addToken(TokenType::PLUS); break;
             case ';': addToken(TokenType::SEMICOLON); break;
             case '*': addToken(TokenType::STAR); break;
-            case '/': addToken(TokenType::SLASH); break; 
-            
-            // Operators
+            case '/': addToken(TokenType::SLASH); break;
+
             case '!': addToken(match('=') ? TokenType::BANG_EQUAL : TokenType::BANG); break;
             case '=': addToken(match('=') ? TokenType::EQUAL_EQUAL : TokenType::EQUAL); break;
             case '<': addToken(match('<') ? TokenType::SUMMON_OP : (match('=') ? TokenType::LESS_EQUAL : TokenType::LESS)); break;
             case '>': addToken(match('>') ? TokenType::DRAW_OP : (match('=') ? TokenType::GREATER_EQUAL : TokenType::GREATER)); break;
-            
-            // Whitespace
+
             case ' ':
             case '\r':
             case '\t':
-                // Ignore whitespace.
                 break;
             case '\n':
                 line++;
                 break;
 
-            // String literals
+
             case '"': stringLiteral(); break;
 
             default:
                 if (isdigit(c)) {
                     numberLiteral();
                 } else if (isalpha(c) || c == '_') {
-                    // Check for our keywords/identifiers
+
                     identifier();
                 } else {
                     std::cerr << "Line " << line << ": Error! Unexpected character '" << c << "'" << std::endl;
@@ -327,4 +322,5 @@ private:
     }
 };
 
-#endif // DUELSCRIPT_SCANNER_H
+#endif
+
